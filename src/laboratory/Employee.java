@@ -757,13 +757,13 @@ public class Employee {
         return updatedSalary;
     }
 
-    // 2021-01-17 @TP
+    // 2021-11-24 @TP
     // Algorytm przyznania podwyżki:
     // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce przekracza 10000 PLN to zostanie ona cofnięta (pracownik nie otrzyma pierwszej podwyżki).
-    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (5000, 10000] PLN to praownik otrzyma tylko pierwszą podwyżkę.
-    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (0, 5000] PLN to praownik otrzyma pierwszą oraz drugą podwyżkę.
+    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (5000, 10000] PLN to pracownik otrzyma tylko pierwszą podwyżkę.
+    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (0, 5000] PLN to pracownik otrzyma pierwszą oraz drugą podwyżkę.
     // Ile będzie wynosić kwota podwyżki dla pracownika, który zarabia 3000 zł zakładając, że każda podwyżka ma ten sam wzrost 10%?
-    public static double changeSalaryTwice_ExecuteQueryRollback(double salaryRise, int employee) {
+    public static double changeSalaryTwice_ExecuteQuerySavepoint(double salaryRise, int employee) {
 
         double updatedSalary = -1;
         Connection connection = null;
@@ -775,12 +775,10 @@ public class Employee {
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             // Ustawienie trybu AUTOCOMMIT na tryb pełnej kontroli zatwiedzania oraz wycofywania transakcji.
             connection.setAutoCommit(false);
-
             PreparedStatement pstmt;
             ResultSet rs = null;
 
-            //--------------------
-            // Start transakcji T1
+            // Start operacji U1
             String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING *";
 
             pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -792,63 +790,63 @@ public class Employee {
                 rs = pstmt.executeQuery();
                 rs.beforeFirst();
                 // W celu obserwcji z użyciem PgAdmina (Narzędzia - Status serwera) nałożonych w bazie danych blokad, można po uruchomieniu transakcji wstrzymać jej zakończenie poniższym poleceniem.
-                // Poniższe uśpienie konieczne jest także dla sprawdzenia działania przykładu nr 20
-                // TimeUnit.SECONDS.sleep(1);
+                // TimeUnit.SECONDS.sleep(15);
                 if (rs.next()) {
                     updatedSalary = rs.getDouble(6);
 
-                    //--------------------
-                    // Start transakcji T2
-                    sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING placa_zasadnicza";
-
-                    pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                    pstmt.clearParameters();
-                    pstmt.setDouble(1, salaryRise);
-                    pstmt.setInt(2, employee);
-
-                    try {
-                        rs = pstmt.executeQuery();
-                        if (rs.next()) {
-                            // Poniższy zapis odwołuje się jawnie, poprzez nazwę do zwracanej poprzez UPDATE wartości.
-                            updatedSalary = rs.getDouble("placa_zasadnicza");
-                            if (updatedSalary > 10000) {
-                                System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit.");
-                                connection.rollback(); // @TP Notice: Rollback can be executed in Autocommit = FALSE mode.
-                                updatedSalary = -1;
-                            } else {
-                                connection.commit();
-                                System.out.println("Information. Updated salary = " + updatedSalary);
-                            }
-                        }
-                    } catch (Exception e) {
-                        // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE 
+                    // Punkt zachowania
+                    Savepoint sp = connection.setSavepoint("S1");
+                    if (updatedSalary > 10000) {
+                        System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit. Change not saved.");
+                        // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
                         // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
                         connection.rollback();
-                        System.err.println("Error. Update failed. Exception: " + e);
-                    }
-                    // Koniec transkacji T2 
-                    //--------------------
-
-                    if (updatedSalary > 5000) {
-                        System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit.");
-                        connection.rollback(); // @TP Notice: Rollback can be executed in Autocommit = FALSE mode.
                         updatedSalary = -1;
                     } else {
-                        connection.commit();
-                        System.out.println("Information. Updated salary = " + updatedSalary);
+
+                        // Start operacji U2
+                        sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING placa_zasadnicza";
+
+                        pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                        pstmt.clearParameters();
+                        pstmt.setDouble(1, salaryRise);
+                        pstmt.setInt(2, employee);
+
+                        try {
+                            rs = pstmt.executeQuery();
+                            if (rs.next()) {
+                                // Poniższy zapis odwołuje się jawnie, poprzez nazwę do zwracanej poprzez UPDATE wartości.
+                                updatedSalary = rs.getDouble("placa_zasadnicza");
+                            }
+                        } catch (Exception e) {
+                            // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
+                            // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
+                            connection.rollback();
+                            System.err.println("Error. Update failed. Exception: " + e);
+                        }
+                        // Koniec operacji U2
+
+                        if (updatedSalary > 5000) {
+                            System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than middle limit. Change not saved.");
+                            connection.rollback(sp); // @TP Notice: Rollback can be executed in Autocommit = FALSE mode.
+                            connection.commit();
+                            updatedSalary = -1;
+                        } else {
+                            connection.commit();
+                            System.out.println("Information. Updated salary = " + updatedSalary);
+                        }
                     }
                 } else {
                     System.err.println("Information. No records were updated.");
                     // Czy jest sens wykonywać COMMIT albo ROLLBACK gdy żaden rekord nie został zmieniony?
-                    // connection.commit(); // connection.rollback();
+                    // connection.commit(); / connection.rollback();
                 }
             } catch (Exception e) {
-                // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE 
+                // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
                 // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
                 connection.rollback();
                 System.err.println("Error. Update failed. Exception: " + e);
-                //--------------------
-                // Koniec transakcji T1               
+                // Koniec operacji U1
 
             } finally {
                 try {
