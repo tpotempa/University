@@ -20,9 +20,9 @@ import java.sql.DriverManager;
 public class Laboratory extends JFrame {
 
     static final String JDBC_DRIVER = "org.postgresql.Driver";
-    static final String DB_URL = "jdbc:postgresql://195.150.230.210:5434/2021_nazwisko_imie";
-    static final String USER = "2021_nazwisko_imie";
-    static final String PASS = "";
+    static final String DB_URL = "jdbc:postgresql://195.150.230.210:5434/2021_potempa_tomasz";
+    static final String USER = "2021_potempa_tomasz";
+    static final String PASS = "12345";
     static final int POOL_SIZE = 5;
 
     public Laboratory(String description, Component relativePosition, List<Employee> employeeList) {
@@ -44,7 +44,7 @@ public class Laboratory extends JFrame {
     public static void main(String[] args) {
 
         // Numer przykładu
-        int example = 27;
+        int example = 50;
 
         switch (example) {
             case 1: {
@@ -147,9 +147,9 @@ public class Laboratory extends JFrame {
                 break;
             }
             case 27: {
-                // Przykład #27 :: Kontrola nad operacjami z uzyciem punktu zachowania
+                // Przykład #27 :: Kontrola nad zagnieżdżonymi transakcjami
                 long startTime = System.currentTimeMillis();
-                changeSalaryTwice_ExecuteQuerySavepoint(0.1, 1);
+                changeSalaryTwice_ExecuteQueryRollback(0.1, 1);
                 long endTime = System.currentTimeMillis();
                 System.out.println("Execution time: " + (endTime - startTime) + " ms");
                 break;
@@ -186,7 +186,7 @@ public class Laboratory extends JFrame {
                 
             case 50: {
                 // Przykład #50 :: Używanie puli połączeń
-                // Inicjalizacja puli.
+                // Inicjalizacja puli.                
                 ConnectionPool cp = new ConnectionPool();
                 try {
                     Class jdbc = Class.forName(JDBC_DRIVER);
