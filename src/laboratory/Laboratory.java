@@ -20,9 +20,9 @@ import java.sql.DriverManager;
 public class Laboratory extends JFrame {
 
     static final String JDBC_DRIVER = "org.postgresql.Driver";
-    static final String DB_URL = "jdbc:postgresql://195.150.230.210:5434/2021_potempa_tomasz";
-    static final String USER = "2021_potempa_tomasz";
-    static final String PASS = "12345";
+    static final String DB_URL = "jdbc:postgresql://195.150.230.208:5432/2022_nazwisko_imie";
+    static final String USER = "2022_nazwisko_imie";
+    static final String PASS = "";
     static final int POOL_SIZE = 5;
 
     public Laboratory(String description, Component relativePosition, List<Employee> employeeList) {
