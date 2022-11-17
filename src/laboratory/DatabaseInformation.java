@@ -1,6 +1,9 @@
 package laboratory;
 
 import java.sql.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static laboratory.Laboratory.JDBC_DRIVER;
 import static laboratory.Laboratory.DB_URL;
 import static laboratory.Laboratory.USER;
@@ -8,6 +11,7 @@ import static laboratory.Laboratory.PASS;
 
 public class DatabaseInformation {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseInformation.class);
     public static String getDriverVersion() {
 
         String information = "No information.";
@@ -17,7 +21,7 @@ public class DatabaseInformation {
             Driver driver = DriverManager.getDriver(DB_URL);
             information = "Class: " + jdbc.getCanonicalName() + " / JDBC version: " + driver.getMajorVersion() + "." + driver.getMinorVersion() + " / Database: " + DB_URL;
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         }
         return information;
     }
@@ -54,7 +58,7 @@ public class DatabaseInformation {
                         defaultIsolationLevel = "UNKNOWN";
                 }
             } catch (Exception e) {
-                System.err.println("Error SQL. Exception: " + e);
+                logger.error("A generic exception occurred.", e);
             }
             try {
                 switch (connection.getTransactionIsolation()) {
@@ -77,11 +81,11 @@ public class DatabaseInformation {
                         isolationLevel = "UNKNOWN";
                 }
             } catch (Exception e) {
-                System.err.println("Error SQL. Exception: " + e);
+                logger.error("A generic exception occurred.", e);
             }
 
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         }
 
         information = "For current connection transaction isolation level = " + isolationLevel + ". Default isolation level = " + defaultIsolationLevel + ".";

@@ -1,38 +1,18 @@
 package laboratory;
 
-import java.sql.*;
 import java.util.*;
 
 public class DatabaseResults {
-
-    private final Connection connection;
-    private final String productName;
-    private final String productVersion;
     private final int columnCount;
     private final String[] columnNames;
     private final ArrayList<String[]> queryResults;
     String[] rowData;
 
-    public DatabaseResults(Connection connection, String productName, String productVersion, int columnCount, String[] columnNames) {
-        this.connection = connection;
-        this.productName = productName;
-        this.productVersion = productVersion;
+    public DatabaseResults(int columnCount, String[] columnNames) {
         this.columnCount = columnCount;
         this.columnNames = columnNames;
         rowData = new String[columnCount];
         queryResults = new ArrayList<>();
-    }
-
-    public Connection getConnection() {
-        return (connection);
-    }
-
-    public String getProductName() {
-        return (productName);
-    }
-
-    public String getProductVersion() {
-        return (productVersion);
     }
 
     public int getColumnCount() {
@@ -60,14 +40,14 @@ public class DatabaseResults {
 
         buffer.append("<table align=\"center\" cellSpacing=\"0\" cellPadding=\"5\" border=\"1\" bordercolor=\"FFFFFF\" bgcolor=\"#CCCCCC\" width=\"90%\">");
 
-        // Table title.
+        // Tytuł tabeli.
         buffer.append("<tr><th height=\"30\" colspan=\"");
         buffer.append(this.getColumnCount() + 1);
         buffer.append("\">");
         buffer.append(tableTitle.toUpperCase());
         buffer.append("</th></tr>");
 
-        // Column header.
+        // Nagłówek kolumny.
         buffer.append("<tr><th>LP.</th>");
 
         String[] header = this.getColumnNames();
@@ -80,7 +60,7 @@ public class DatabaseResults {
         }
         buffer.append("</tr>");
 
-        // Table rows.
+        // Wiersze tabeli.
         for (int row = 0; row < this.getRowCount(); row++) {
             buffer.append("<tr><td align=\"center\" title=\"\">");
             buffer.append(row + 1);

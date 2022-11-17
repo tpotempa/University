@@ -2,10 +2,14 @@ package laboratory;
 
 import java.sql.*;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static laboratory.DatabaseInformation.*;
 
 public class ConnectionPool {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
     private String driver;
     private String url;
     private int size = 0;
@@ -52,37 +56,32 @@ public class ConnectionPool {
         }
     }
 
-    public String getUserName() {
-        return username;
-    }
-
     public void setPassword(String value) {
         if (value != null) {
             password = value;
         }
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    // Create and return a connection.
+    // Tworzenie i zwrócenie połączenia.
     private Connection createConnection() throws Exception {
         return DriverManager.getConnection(url, username, password);
     }
 
-    // Initialize the pool
+    // Inicjalizacja puli połączeń.
     public synchronized void initializePool() throws Exception {
         if (driver == null || url == null || size < 1) {
-            throw new Exception("No parameters specified.");
+            throw new Exception("No required parameters specified.");
         }
-        System.out.println("Creating connections.");
+        logger.info("Creating connections.");
 
         try {
             try {
                 Class.forName(driver);
+                logger.info(getDriverVersion());
             } catch (ClassNotFoundException e) {
-                System.err.println("JDBC driver cannot be found. " + e);
+                logger.error("An exception occurred while loading {} class.", driver, e);
+            } catch (Exception e) {
+                logger.error("A generic exception occurred.", e);
             }
             for (int x = 0; x < size; x++) {
                 Connection con = createConnection();
@@ -92,12 +91,12 @@ public class ConnectionPool {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error. Initialization of the pool. " + e.getMessage());
+            logger.error("A generic exception occurred.", e);
             throw new Exception(e.getMessage());
         }
     }
 
-    // Add the PooledConnection to the pool.
+    // Dodanie połączenia do puli.
     private void addConnection(PooledConnection value) {
         if (pool == null) {
             pool = new ArrayList<>(size);
@@ -105,7 +104,7 @@ public class ConnectionPool {
         pool.add(value);
     }
 
-    // Release a connection.
+    // Zwracanie połączenia do puli.
     public synchronized void releaseConnection(Connection con) {
         for (int x = 0; x < pool.size(); x++) {
             PooledConnection pcon = pool.get(x);
@@ -116,22 +115,22 @@ public class ConnectionPool {
                 try {
                     autocommit = con.getAutoCommit();
                 } catch (SQLException e) {
-                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + e.getMessage());
+                    logger.error("An exception occurred while getting AutoCommit property of the connection.", e);
                 }
                 if (!autocommit) {
-                    System.err.println("Warning SQL. Pool contains connection No " + x + " [" + con + "] with AUTOCOMMIT = false");
+                    logger.warn("Pool contains connection No {} [{}] with AutoCommit set to false.", x, con);
                 }
 
                 try {
                     transactionIsolationLevel = con.getTransactionIsolation();
                 } catch (SQLException e) {
-                    System.err.println("Error SQL. TRANSACTION ISOLATION LEVEL property of the connection cannot be determined. " + e.getMessage());
+                    logger.error("An exception occurred while getting Transaction Isolation Level property of the connection.", e);
                 }
                 if (transactionIsolationLevel != Connection.TRANSACTION_READ_COMMITTED) {
-                    String isolationLevel = getTransactionIsolationLevel(transactionIsolationLevel);                    
-                    System.err.println("Warning SQL. Releasing connection No " + x + " [" + con + "] with TRANSACTION ISOLATION LEVEL = " + isolationLevel);
+                    String isolationLevel = getTransactionIsolationLevel(transactionIsolationLevel);
+                    logger.info("Releasing connection No {} [{}] with Transaction Isolation Level set to {}.", x, con, isolationLevel);
                 }
-                System.out.println("Information. Releasing connection No " + x + " [" + con + "] with [AUTOCOMMIT=" + autocommit + "]");
+                logger.info("Releasing connection No {} [{}] with AutoCommit set to {}.", x, con, autocommit);
 
                 pcon.setInUse(false);
                 break;
@@ -139,9 +138,8 @@ public class ConnectionPool {
         }
     }
 
-    // Find an available connection.
-    public synchronized Connection getConnection()
-            throws Exception {
+    // Pobieranie nieużywanego połączenia z puli połączeń. W przypadku braku nieużywanego połączenia tworzenie nowego.
+    public synchronized Connection getConnection() throws Exception {
         PooledConnection pcon;
         for (int x = 0; x < pool.size(); x++) {
             pcon = pool.get(x);
@@ -153,33 +151,40 @@ public class ConnectionPool {
                 try {
                     autocommit = con.getAutoCommit();
                 } catch (SQLException e) {
-                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + e.getMessage());
+                    logger.error("An exception occurred while getting AutoCommit property of the connection.", e);
                 }
-                System.out.println("Information. Getting connection No " + x + " [" + con + "] with [AUTOCOMMIT=" + autocommit + "]");
+                logger.info("Getting connection No {} [{}] with AutoCommit set to {}.", x, con, autocommit);
                 return con;
             }
         }
 
-        // If there is no available connection, create and add a new one to the pool.
+        // W przypadku braku nieużywanego połączenia w puli, tworzenie nowego oraz dodanie do puli połączeń.
         try {
             Connection con = createConnection();
             pcon = new PooledConnection(con);
             pcon.setInUse(true);
             pool.add(pcon);
+            boolean autocommit = false;
+            try {
+                autocommit = con.getAutoCommit();
+            } catch (SQLException e) {
+                logger.error("An exception occurred while getting AutoCommit property of the connection.", e);
+            }
+            logger.info("Creating and getting a new connection No {} [{}] with AutoCommit set to {}.", pool.size() - 1, con, autocommit);
         } catch (Exception e) {
-            System.err.println("Error. Getting connection.");
-            System.err.println(e.getMessage());
+            logger.error("An exception occurred while getting the connection.", e);
             throw new Exception(e.getMessage());
         }
         return pcon.getConnection();
     }
 
+    // Zamykanie puli połączeń.
     public synchronized void emptyPool() {
         for (int x = 0; x < pool.size(); x++) {
-            System.out.println("Closing JDBC Connection " + x);
+            logger.info("Closing connection {}.", x);
             PooledConnection pcon = pool.get(x);
 
-            // If connection is still in use, sleep for 10 seconds and force close.
+            // Jeżeli połączenie jest używane, poczekaj, a następnie wymuś zamknięcie.
             if (!pcon.inUse()) {
                 pcon.close();
             } else try {

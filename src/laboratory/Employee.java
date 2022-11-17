@@ -92,76 +92,104 @@ public class Employee {
         this.departmentId = departmentId;
     }
 
-    private static void getSupportedResultSetModes(Connection connection) throws SQLException {
+    public static void getSupportedResultSetModes() {
 
-        logger.info("HOLDABILITY:");
-        boolean isCloseAtCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-        logger.info(isCloseAtCommitSupported ? "Database supports CLOSE_CURSORS_AT_COMMIT." : "Database does NOT support CLOSE_CURSORS_AT_COMMIT.");
-        boolean isHoldOverCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT);
-        logger.info(isHoldOverCommitSupported ? "Database supports HOLD_CURSORS_OVER_COMMIT." : "Database does NOT support HOLD_CURSORS_OVER_COMMIT.");
+        Connection connection = null;
 
-        logger.info("SCROLLABILITY & SENSITIVITY:");
-        boolean isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(isSensitiveSupported ? "Database supports TYPE_FORWARD_ONLY." : "Database does NOT support TYPE_FORWARD_ONLY.");
-        isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_INSENSITIVE." : "Database does NOT support TYPE_SCROLL_INSENSITIVE.");
-        isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_SENSITIVE." : "Database does NOT support TYPE_SCROLL_SENSITIVE.");
+        try {
+            Class.forName(JDBC_DRIVER);
 
-        logger.info("UPDATES VISIBILITY:");
-        boolean areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_FORWARD_ONLY." : "Own updates are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
-        boolean areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_FORWARD_ONLY." : "Other updates are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            connection = DriverManager.getConnection(DB_URL, USER, PASS);
 
-        logger.info("DELETES VISIBILITY:");
-        boolean areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_FORWARD_ONLY." : "Own deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
-        boolean areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_FORWARD_ONLY." : "Other deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            logger.info("HOLDABILITY:");
+            boolean isCloseAtCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+            logger.info(isCloseAtCommitSupported ? "Database supports CLOSE_CURSORS_AT_COMMIT." : "Database does NOT support CLOSE_CURSORS_AT_COMMIT.");
+            boolean isHoldOverCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT);
+            logger.info(isHoldOverCommitSupported ? "Database supports HOLD_CURSORS_OVER_COMMIT." : "Database does NOT support HOLD_CURSORS_OVER_COMMIT.");
 
-        logger.info("INSERTS VISIBILITY:");
-        boolean areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_FORWARD_ONLY." : "Own inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
-        boolean areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
-        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_FORWARD_ONLY." : "Other inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
-        areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
-        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
-        areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
-        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            logger.info("SCROLLABILITY & SENSITIVITY:");
+            boolean isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(isSensitiveSupported ? "Database supports TYPE_FORWARD_ONLY." : "Database does NOT support TYPE_FORWARD_ONLY.");
+            isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_INSENSITIVE." : "Database does NOT support TYPE_SCROLL_INSENSITIVE.");
+            isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_SENSITIVE." : "Database does NOT support TYPE_SCROLL_SENSITIVE.");
+
+            logger.info("UPDATES VISIBILITY:");
+            boolean areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_FORWARD_ONLY." : "Own updates are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            boolean areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_FORWARD_ONLY." : "Other updates are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+
+            logger.info("DELETES VISIBILITY:");
+            boolean areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_FORWARD_ONLY." : "Own deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            boolean areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_FORWARD_ONLY." : "Other deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+
+            logger.info("INSERTS VISIBILITY:");
+            boolean areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_FORWARD_ONLY." : "Own inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+            boolean areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+            logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_FORWARD_ONLY." : "Other inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
+            areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+            logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+            areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+            logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
+        } catch (Exception e) {
+            logger.error("A generic exception occurred.", e);
+        } finally {
+            close(connection, null, null);
+        }
     }
 
-    private static void getSupportedTransactionIsolationLevels(Connection connection) throws SQLException {
+    public static void getSupportedTransactionIsolationLevels() {
 
-        logger.info("TRANSACTION ISOLTAION LEVEL:");
-        boolean isReadUncommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED);
-        logger.info(isReadUncommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_UNCOMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_UNCOMMITTED.");
-        boolean isReadCommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);
-        logger.info(isReadCommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_COMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_COMMITTED.");
-        boolean isRepeatableReadSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ);
-        logger.info(isRepeatableReadSupported ? "Database supports transaction isolation level TRANSACTION_REPEATABLE_READ." : "Database does NOT support transaction isolation level TRANSACTION_REPEATABLE_READ.");
-        boolean isSerializableSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE);
-        logger.info(isSerializableSupported ? "Database supports transaction isolation level TRANSACTION_SERIALIZABLE." : "Database does NOT support transaction isolation level TRANSACTION_SERIALIZABLE.");
+        Connection connection = null;
+
+        try {
+            Class.forName(JDBC_DRIVER);
+
+            connection = DriverManager.getConnection(DB_URL, USER, PASS);
+
+            logger.info("TRANSACTION ISOLTAION LEVEL:");
+            boolean isReadUncommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED);
+            logger.info(isReadUncommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_UNCOMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_UNCOMMITTED.");
+            boolean isReadCommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);
+            logger.info(isReadCommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_COMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_COMMITTED.");
+            boolean isRepeatableReadSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ);
+            logger.info(isRepeatableReadSupported ? "Database supports transaction isolation level TRANSACTION_REPEATABLE_READ." : "Database does NOT support transaction isolation level TRANSACTION_REPEATABLE_READ.");
+            boolean isSerializableSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE);
+            logger.info(isSerializableSupported ? "Database supports transaction isolation level TRANSACTION_SERIALIZABLE." : "Database does NOT support transaction isolation level TRANSACTION_SERIALIZABLE.");
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
+        } catch (Exception e) {
+            logger.error("A generic exception occurred.", e);
+        } finally {
+            close(connection, null, null);
+        }
     }
 
     private static void close(Connection connection, Statement stmt, ResultSet rs) {
@@ -213,6 +241,8 @@ public class Employee {
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             employees = DatabaseUtilities.getQueryResults("SELECT id_prowadzacego AS \"ID\", * FROM kadry.prowadzacy", connection);
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -250,6 +280,8 @@ public class Employee {
 
             logger.info("Execution time {} ms.", (endTime - startTime));
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -258,14 +290,14 @@ public class Employee {
         return employeeList;
     }
 
-    public static List<Employee> getEmployees_StatementUpdateVisibility() {
+    public static List<Employee> getEmployees_Statement_UpdateVisibility(int employee, int salaryMultiplication) {
 
         Connection connection = null;
         Statement stmt = null;
         ResultSet rs = null;
         List<Employee> employeeList = new ArrayList<>();
 
-        Integer sleep = 1; // Czas uśpienia pozwalający na (nie)obserwację w bazie danych zmian wykonywanych w ramach transakcji (PgAdmin - Narzędzia - Status serwera).
+        int sleep = 1; // Czas uśpienia pozwalający na (nie)obserwację w bazie danych zmian wykonywanych w ramach transakcji (PgAdmin - Narzędzia - Status serwera).
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -274,10 +306,10 @@ public class Employee {
             connection.setAutoCommit(false);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
-            // Informacja o wspieranych poziomach izolacji transakcji
-            getSupportedTransactionIsolationLevels(connection);
-            // Informacja o wspieranych własnościach zbioru rezultatów
-            getSupportedResultSetModes(connection);
+            // Informacje o wspieranych poziomach izolacji transakcji
+            getSupportedTransactionIsolationLevels();
+            // Informacje o wspieranych własnościach zbioru rezultatów
+            getSupportedResultSetModes();
 
             String sql = "SELECT * FROM kadry.prowadzacy WHERE id_prowadzacego <= 10 ORDER BY 1";
             stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
@@ -289,8 +321,8 @@ public class Employee {
             while (rs.next()) {
                 TimeUnit.MILLISECONDS.sleep(sleep);
                 logger.info("Employees ID = {}. Płaca zasadnicza = {}.", rs.getInt("id_prowadzacego"), rs.getDouble("placa_zasadnicza"));
-                if(rs.getInt("id_prowadzacego") == 5) {
-                    rs.updateDouble("placa_zasadnicza", 5 * rs.getDouble("placa_zasadnicza"));
+                if(rs.getInt("id_prowadzacego") == employee) {
+                    rs.updateDouble("placa_zasadnicza", salaryMultiplication * rs.getDouble("placa_zasadnicza"));
                     rs.updateRow();
                 }
             }
@@ -310,6 +342,8 @@ public class Employee {
 
             connection.rollback();
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -342,6 +376,8 @@ public class Employee {
                 logger.info("No rows were fetched.");
             }
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -374,6 +410,8 @@ public class Employee {
             } else {
                 logger.info("No rows were fetched.");
             }
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -411,6 +449,8 @@ public class Employee {
                 employeeList.add(row);
             }
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -450,6 +490,8 @@ public class Employee {
                 logger.info("No rows were updated.");
             }
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -487,8 +529,9 @@ public class Employee {
                 rs.updateRow();
                 logger.info("Updated salary = {}.", changedSalary);
             }
-            // @TODO rs.moveToInsertRow();
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -497,11 +540,12 @@ public class Employee {
         return changedSalary;
     }
 
-    public static double addEmployeePayment_PreparedStatementResultSet(double salary, int month, int year, String category, int employee) {
+    public static boolean addEmployeePayment_PreparedStatementResultSet(double salary, int month, int year, String category, int employee) {
 
         Connection connection = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+        boolean result = false;
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -520,7 +564,7 @@ public class Employee {
             rs = pstmt.executeQuery();
             rs.beforeFirst();
             if (!rs.next()) {
-                rs.moveToInsertRow(); // Ustawienie na pozycji w zbiorze danych pozwalającej dodać rekord.
+                rs.moveToInsertRow(); // Ustawienie się w zbiorze danych na pozycji pozwalającej dodać rekord.
                 rs.updateInt("id_prowadzacego", employee);
                 rs.updateInt("rok", year);
                 rs.updateInt("miesiac", month);
@@ -529,12 +573,15 @@ public class Employee {
                 rs.updateDouble("kwota", salary);
                 rs.insertRow(); // Dodanie rekordu do bazy danych.
             }
+            result = true;
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
             close(connection, pstmt, rs);
         }
-        return salary;
+        return result;
     }
 
     // @TODO Zmieniono 2022-11-16
@@ -566,6 +613,8 @@ public class Employee {
                 logger.info("No employees salaries were updated.");
             }
 
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (SQLException e) {
             logger.error("SQL exception occurred due to failed update.", e);
         } catch (Exception e) {
@@ -612,6 +661,8 @@ public class Employee {
             } else {
                 logger.info("No employees salaries were updated.");
             }
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (SQLException e) {
             logger.error("SQL exception occurred due to failed update.", e);
         } catch (Exception e) {
@@ -628,7 +679,7 @@ public class Employee {
         Connection connection = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        Integer sleep = 15; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
+        int sleep = 15; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -673,6 +724,8 @@ public class Employee {
                 connection.rollback();
                 logger.error("Exception occurred therefore update was rollbacked.", e);
             }
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
@@ -686,13 +739,13 @@ public class Employee {
     // - Jeżeli po pierwszej podwyżce wynagrodzenie pracownika zawiera się w przedziale (5000, 10000] PLN to pracownik otrzyma tylko pierwszą podwyżkę.
     // - Jeżeli po pierwszej podwyżce wynagrodzenie pracownika zawiera się w przedziale (0, 5000] PLN to pracownik otrzyma pierwszą oraz drugą podwyżkę.
     // Ile będzie wynosić kwota podwyżki dla pracownika, który zarabia 3000 PLN zakładając, że każda podwyżka ma ten sam wzrost 10%?
-    public static double changeSalaryTwice_ExecuteQuerySavepoint(double salaryRise, int employee) {
+    public static int changeSalary_ExecuteQuerySavepoint(double salaryRise, int employee) {
 
-        double updatedSalary = -1;
+        int salaryChangesCount = 0;
         Connection connection = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        Integer sleep = 15; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
+        int sleep = 5; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -705,8 +758,7 @@ public class Employee {
             logger.info("AutoCommit mode is set to {}.", connection.getAutoCommit());
 
             // Start operacji U1
-            String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING *";
-
+            String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING placa_zasadnicza";
             pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             pstmt.clearParameters();
             pstmt.setDouble(1, salaryRise);
@@ -716,7 +768,8 @@ public class Employee {
                 rs = pstmt.executeQuery();
                 rs.beforeFirst();
                 if (rs.next()) {
-                    updatedSalary = rs.getDouble(6);
+                    // Poniższy zapis odwołuje się poprzez indeks do zwracanej poprzez UPDATE wartości.
+                    double updatedSalary = rs.getDouble(1);
 
                     // Punkt zachowania
                     Savepoint sp = connection.setSavepoint("S1");
@@ -724,14 +777,12 @@ public class Employee {
                         logger.info("Constraint violation. Updated salary = {} is greater than or equal to upper limit (10000 PLN). Modification not saved.", updatedSalary);
                         TimeUnit.SECONDS.sleep(sleep);
                         connection.rollback();  // Wycofanie wprowadzonych zmian może być wykonywane w trybie nieautomatycznego zatwierdzania transakcji.
-                        updatedSalary = -1;
+                        //updatedSalary = Double.NaN;
                     } else {
 
                         logger.info("Salary after first rise = {}.", updatedSalary);
+                        salaryChangesCount = 1;
                         // Start operacji U2
-                        sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING placa_zasadnicza";
-
-                        //pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                         pstmt.clearParameters();
                         pstmt.setDouble(1, salaryRise);
                         pstmt.setInt(2, employee);
@@ -740,7 +791,7 @@ public class Employee {
                             rs = pstmt.executeQuery();
                             rs.beforeFirst();
                             if (rs.next()) {
-                                // Poniższy zapis odwołuje się jawnie, poprzez nazwę do zwracanej poprzez UPDATE wartości.
+                                // Poniższy zapis odwołuje się poprzez nazwę do zwracanej poprzez UPDATE wartości.
                                 updatedSalary = rs.getDouble("placa_zasadnicza");
                             }
                         } catch (Exception e) {
@@ -756,11 +807,12 @@ public class Employee {
                             TimeUnit.SECONDS.sleep(sleep);
                             connection.rollback(sp); // Wycofanie transakcji do punktu zachowania może być wykonane tylko w trybie nieautomatycznego zatwierdzania transakcji.
                             connection.commit();
-                            updatedSalary = -1;
+                            //updatedSalary = Double.NaN;
                         } else {
                             TimeUnit.SECONDS.sleep(sleep);
                             connection.commit();
                             logger.info("Updated salary = {}.", updatedSalary);
+                            salaryChangesCount = 2;
                         }
                     }
                 } else {
@@ -774,11 +826,13 @@ public class Employee {
                 connection.rollback();
                 logger.error("Exception occurred therefore update was rollbacked.", e);
             }
+        } catch (ClassNotFoundException e) {
+            logger.error("An exception occurred while loading JDBC class.", e);
         } catch (Exception e) {
             logger.error("A generic exception occurred.", e);
         } finally {
             close(connection, pstmt, rs);
         }
-        return updatedSalary;
+        return salaryChangesCount;
     }
 }
