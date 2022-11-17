@@ -11,7 +11,7 @@ public class EmployeeTableModel extends AbstractTableModel
             "ID", "Imię", "Nazwisko", "Tytuł", "Stanowisko", "Wynagrodzenie", "Jednostka"
     };
     
-    private final Class[] columnClass = new Class[] {
+    private final Class<?>[] columnClass = new Class[] {
         Integer.class, String.class, String.class, String.class, String.class, Double.class, Integer.class
     };
 

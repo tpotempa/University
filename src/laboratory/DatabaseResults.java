@@ -5,12 +5,12 @@ import java.util.*;
 
 public class DatabaseResults {
 
-    private Connection connection;
-    private String productName;
-    private String productVersion;
-    private int columnCount;
-    private String[] columnNames;
-    private ArrayList queryResults;
+    private final Connection connection;
+    private final String productName;
+    private final String productVersion;
+    private final int columnCount;
+    private final String[] columnNames;
+    private final ArrayList<String[]> queryResults;
     String[] rowData;
 
     public DatabaseResults(Connection connection, String productName, String productVersion, int columnCount, String[] columnNames) {
@@ -20,7 +20,7 @@ public class DatabaseResults {
         this.columnCount = columnCount;
         this.columnNames = columnNames;
         rowData = new String[columnCount];
-        queryResults = new ArrayList();
+        queryResults = new ArrayList<>();
     }
 
     public Connection getConnection() {
@@ -48,56 +48,56 @@ public class DatabaseResults {
     }
 
     public String[] getRow(int index) {
-        return ((String[]) queryResults.get(index));
+        return queryResults.get(index);
     }
 
     public void addRow(String[] row) {
         queryResults.add(row);
     }
 
-    public String displayHTML(String tableTitle) throws Exception {
+    public String displayHTML(String tableTitle) {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append("<TABLE align=\"center\" cellSpacing=\"0\" cellPadding=\"5\" border=\"1\" bordercolor=\"FFFFFF\" bgcolor=\"#CCCCCC\" width=\"90%\">");
+        buffer.append("<table align=\"center\" cellSpacing=\"0\" cellPadding=\"5\" border=\"1\" bordercolor=\"FFFFFF\" bgcolor=\"#CCCCCC\" width=\"90%\">");
 
-        // TABLE TITLE
-        buffer.append("<TR><TH height=\"30\" colspan=\"");
-        buffer.append(Integer.toString(this.getColumnCount() + 1));
+        // Table title.
+        buffer.append("<tr><th height=\"30\" colspan=\"");
+        buffer.append(this.getColumnCount() + 1);
         buffer.append("\">");
         buffer.append(tableTitle.toUpperCase());
-        buffer.append("</TH></TR>");
+        buffer.append("</th></tr>");
 
-        // COLUMN HEADER
-        buffer.append("<TR><TH>L.P.</TH>");
+        // Column header.
+        buffer.append("<tr><th>LP.</th>");
 
         String[] header = this.getColumnNames();
         String columnTitle;
 
         for (int col = 0; col < this.getColumnCount(); col++) {
-            buffer.append("<TH>");
+            buffer.append("<th>");
             buffer.append(header[col]);
-            buffer.append("</TH>");
+            buffer.append("</th>");
         }
-        buffer.append("</TR>");
+        buffer.append("</tr>");
 
-        // DATA/ROWS
+        // Table rows.
         for (int row = 0; row < this.getRowCount(); row++) {
-            buffer.append("<TR><TD align=\"center\" title=\"\">");
-            buffer.append(Integer.toString(row + 1));
-            buffer.append("</TD>");
+            buffer.append("<tr><td align=\"center\" title=\"\">");
+            buffer.append(row + 1);
+            buffer.append("</td>");
             for (int col = 0; col < getColumnCount(); col++) {
                 String[] record = this.getRow(row);
-                columnTitle = "Row no. " + Integer.toString(row + 1);
-                buffer.append("<TD align=\"center\" title=\"");
+                columnTitle = "Row no. " + (row + 1);
+                buffer.append("<td align=\"center\" title=\"");
                 buffer.append(columnTitle);
                 buffer.append("\">");
                 buffer.append(record[col]);
-                buffer.append("</TD>");
+                buffer.append("</td>");
             }
-            buffer.append("</TR>");
+            buffer.append("</tr>");
         }
 
-        buffer.append("</TABLE>");
+        buffer.append("</table>");
 
         return (buffer.toString());
     }

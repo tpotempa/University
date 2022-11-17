@@ -4,7 +4,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-// import com.sun.rowset.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static laboratory.Laboratory.JDBC_DRIVER;
 import static laboratory.Laboratory.DB_URL;
@@ -13,6 +14,7 @@ import static laboratory.Laboratory.PASS;
 
 public class Employee {
 
+    private static final Logger logger = LoggerFactory.getLogger(Employee.class);
     private int id;
     private String firstName;
     private String lastName;
@@ -90,7 +92,115 @@ public class Employee {
         this.departmentId = departmentId;
     }
 
-    // 2021-01-17 @TP
+    private static void getSupportedResultSetModes(Connection connection) throws SQLException {
+
+        logger.info("HOLDABILITY:");
+        boolean isCloseAtCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+        logger.info(isCloseAtCommitSupported ? "Database supports CLOSE_CURSORS_AT_COMMIT." : "Database does NOT support CLOSE_CURSORS_AT_COMMIT.");
+        boolean isHoldOverCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT);
+        logger.info(isHoldOverCommitSupported ? "Database supports HOLD_CURSORS_OVER_COMMIT." : "Database does NOT support HOLD_CURSORS_OVER_COMMIT.");
+
+        logger.info("SCROLLABILITY & SENSITIVITY:");
+        boolean isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(isSensitiveSupported ? "Database supports TYPE_FORWARD_ONLY." : "Database does NOT support TYPE_FORWARD_ONLY.");
+        isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_INSENSITIVE." : "Database does NOT support TYPE_SCROLL_INSENSITIVE.");
+        isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(isSensitiveSupported ? "Database supports TYPE_SCROLL_SENSITIVE." : "Database does NOT support TYPE_SCROLL_SENSITIVE.");
+
+        logger.info("UPDATES VISIBILITY:");
+        boolean areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_FORWARD_ONLY." : "Own updates are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOwnUpdatesVisible = connection.getMetaData().ownUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOwnUpdatesVisible ? "Own updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Own updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+        boolean areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_FORWARD_ONLY." : "Other updates are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOtherUpdatesVisible = connection.getMetaData().othersUpdatesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOtherUpdatesVisible ? "Other updates are visible in mode TYPE_SCROLL_SENSITIVE." : "Other updates are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+
+        logger.info("DELETES VISIBILITY:");
+        boolean areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_FORWARD_ONLY." : "Own deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOwnDeletesVisible = connection.getMetaData().ownDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOwnDeletesVisible ? "Own deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Own deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+        boolean areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_FORWARD_ONLY." : "Other deletes are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOtherDeletesVisible = connection.getMetaData().othersDeletesAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOtherDeletesVisible ? "Other deletes are visible in mode TYPE_SCROLL_SENSITIVE." : "Other deletes are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+
+        logger.info("INSERTS VISIBILITY:");
+        boolean areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_FORWARD_ONLY." : "Own inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOwnInsertsVisible = connection.getMetaData().ownInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOwnInsertsVisible ? "Own inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Own inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+        boolean areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_FORWARD_ONLY);
+        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_FORWARD_ONLY." : "Other inserts are NOT visible in mode TYPE_FORWARD_ONLY.");
+        areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_INSENSITIVE);
+        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_INSENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_INSENSITIVE.");
+        areOtherInsertsVisible = connection.getMetaData().othersInsertsAreVisible(ResultSet.TYPE_SCROLL_SENSITIVE);
+        logger.info(areOtherInsertsVisible ? "Other inserts are visible in mode TYPE_SCROLL_SENSITIVE." : "Other inserts are NOT visible in mode TYPE_SCROLL_SENSITIVE.");
+    }
+
+    private static void getSupportedTransactionIsolationLevels(Connection connection) throws SQLException {
+
+        logger.info("TRANSACTION ISOLTAION LEVEL:");
+        boolean isReadUncommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED);
+        logger.info(isReadUncommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_UNCOMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_UNCOMMITTED.");
+        boolean isReadCommittedSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);
+        logger.info(isReadCommittedSupported ? "Database supports transaction isolation level TRANSACTION_READ_COMMITTED." : "Database does NOT support transaction isolation level TRANSACTION_READ_COMMITTED.");
+        boolean isRepeatableReadSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_REPEATABLE_READ);
+        logger.info(isRepeatableReadSupported ? "Database supports transaction isolation level TRANSACTION_REPEATABLE_READ." : "Database does NOT support transaction isolation level TRANSACTION_REPEATABLE_READ.");
+        boolean isSerializableSupported = connection.getMetaData().supportsTransactionIsolationLevel(Connection.TRANSACTION_SERIALIZABLE);
+        logger.info(isSerializableSupported ? "Database supports transaction isolation level TRANSACTION_SERIALIZABLE." : "Database does NOT support transaction isolation level TRANSACTION_SERIALIZABLE.");
+    }
+
+    private static void close(Connection connection, Statement stmt, ResultSet rs) {
+        try {
+            if (rs != null && !rs.isClosed()) {
+                rs.close();
+                logger.info("Object {} closed.", rs.getClass().getName());
+            }
+        } catch (Exception e) {
+            logger.error("An exception occurred while closing a result set.", e);
+        }
+        try {
+            if (stmt != null && !stmt.isClosed()) {
+                stmt.close();
+                logger.info("Object {} closed.", stmt.getClass().getName());
+            }
+        } catch (NullPointerException e) {
+            logger.error("Null pointer exception occurred while closing Statement object.", e);
+        } catch (Exception e) {
+            logger.error("An exception occurred while closing a {}.", stmt.getClass().getName(), e);
+        }
+        try {
+            if (connection != null && !connection.isClosed()) {
+                if (!connection.getAutoCommit()) {
+                    try {
+                        connection.setAutoCommit(true);
+                        logger.info("Connection AutoCommit mode set to {}.", connection.getAutoCommit());
+                    } catch (SQLException e) {
+                        logger.error("An exception occurred while setting connection AutoCommit mode.", e);
+                    }
+                }
+                connection.close();
+                logger.info("Object {} closed.", connection.getClass().getName());
+            }
+        } catch (Exception e) {
+            logger.error("An exception occurred while closing a connection.", e);
+        }
+    }
+
     public static DatabaseResults getEmployees() {
 
         DatabaseResults employees = null;
@@ -100,26 +210,17 @@ public class Employee {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
-            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             employees = DatabaseUtilities.getQueryResults("SELECT id_prowadzacego AS \"ID\", * FROM kadry.prowadzacy", connection);
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing connection. Exception: " + e);
-            }
+            close(connection, null, null);
         }
         return employees;
     }
 
-    // 2021-01-15 @TP
     public static List<Employee> getEmployees_Statement() {
 
         Connection connection = null;
@@ -131,7 +232,6 @@ public class Employee {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
-            connection.setAutoCommit(false);
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
             String sql = "SELECT * FROM kadry.prowadzacy ORDER BY 1";
@@ -142,107 +242,82 @@ public class Employee {
             long startTime = System.currentTimeMillis();
             rs = stmt.executeQuery(sql);
 
-            // Information about supported modes
-            boolean isCloseAtCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            System.out.println(isCloseAtCommitSupported ? "Information. Database does support CLOSE_CURSORS_AT_COMMIT" : "Information. Database does NOT support CLOSE_CURSORS_AT_COMMIT");
-            boolean isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-            System.out.println(isSensitiveSupported ? "Information. Database does support TYPE_SCROLL_SENSITIVE" : "Information. Database does NOT support TYPE_SCROLL_SENSITIVE");
-
             while (rs.next()) {
                 Employee row = new Employee(rs.getInt("id_prowadzacego"), rs.getString("imie"), rs.getString("nazwisko"), rs.getString("tytul"), rs.getString("stanowisko"), rs.getDouble("placa_zasadnicza"), rs.getInt("id_jednostki_zatrudniajacej"));
                 employeeList.add(row);
             }
-            connection.commit();
             long endTime = System.currentTimeMillis();
 
-            System.out.println("Execution time " + (endTime - startTime) + " ms");
+            logger.info("Execution time {} ms.", (endTime - startTime));
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (stmt != null && !stmt.isClosed()) {
-                    stmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.setAutoCommit(true);
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, stmt, rs);
         }
         return employeeList;
     }
 
-    // 2021-01-15 @TP
-    public static List<Employee> getEmployees_StatementSensitive() {
+    public static List<Employee> getEmployees_StatementUpdateVisibility() {
 
         Connection connection = null;
         Statement stmt = null;
         ResultSet rs = null;
         List<Employee> employeeList = new ArrayList<>();
 
+        Integer sleep = 1; // Czas uśpienia pozwalający na (nie)obserwację w bazie danych zmian wykonywanych w ramach transakcji (PgAdmin - Narzędzia - Status serwera).
+
         try {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setAutoCommit(false);
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
-            // Information about supported modes
-            boolean isCloseAtCommitSupported = connection.getMetaData().supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-            System.out.println(isCloseAtCommitSupported ? "Information. Database does support CLOSE_CURSORS_AT_COMMIT" : "Information. Database does NOT support CLOSE_CURSORS_AT_COMMIT");
-            boolean isSensitiveSupported = connection.getMetaData().supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE);
-            System.out.println(isSensitiveSupported ? "Information. Database does support TYPE_SCROLL_SENSITIVE" : "Information. Database does NOT support TYPE_SCROLL_SENSITIVE");
+            // Informacja o wspieranych poziomach izolacji transakcji
+            getSupportedTransactionIsolationLevels(connection);
+            // Informacja o wspieranych własnościach zbioru rezultatów
+            getSupportedResultSetModes(connection);
 
-            String sql = "SELECT * FROM kadry.prowadzacy ORDER BY 1";
-            stmt = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+            String sql = "SELECT * FROM kadry.prowadzacy WHERE id_prowadzacego <= 10 ORDER BY 1";
+            stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
-            stmt.setFetchSize(100);
+            stmt.setFetchSize(1);
 
             long startTime = System.currentTimeMillis();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                // Uśpienie wykorzystywane do badania własności TYPE_SCROLL_SENSITIVE
-                TimeUnit.MILLISECONDS.sleep(250);
-                Employee row = new Employee(rs.getInt("id_prowadzacego"), rs.getString("imie"), rs.getString("nazwisko"), rs.getString("tytul"), rs.getString("stanowisko"), rs.getDouble("placa_zasadnicza"), rs.getInt("id_jednostki_zatrudniajacej"));
-                employeeList.add(row);
-                System.out.println("Imię: " + row.firstName);
+                TimeUnit.MILLISECONDS.sleep(sleep);
+                logger.info("Employees ID = {}. Płaca zasadnicza = {}.", rs.getInt("id_prowadzacego"), rs.getDouble("placa_zasadnicza"));
+                if(rs.getInt("id_prowadzacego") == 5) {
+                    rs.updateDouble("placa_zasadnicza", 5 * rs.getDouble("placa_zasadnicza"));
+                    rs.updateRow();
+                }
             }
             long endTime = System.currentTimeMillis();
-            connection.commit();
-            System.out.println("Execution time " + (endTime - startTime) + " ms");
+            logger.info("First read execution time {} ms.", (endTime - startTime));
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
-        } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
-        } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (stmt != null && !stmt.isClosed()) {
-                    stmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.setAutoCommit(true);
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
+            startTime = System.currentTimeMillis();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                TimeUnit.MILLISECONDS.sleep(sleep);
+                Employee row = new Employee(rs.getInt("id_prowadzacego"), rs.getString("imie"), rs.getString("nazwisko"), rs.getString("tytul"), rs.getString("stanowisko"), rs.getDouble("placa_zasadnicza"), rs.getInt("id_jednostki_zatrudniajacej"));
+                employeeList.add(row);
+                logger.info("Employees ID = {}. Płaca zasadnicza = {}.", rs.getInt("id_prowadzacego"), rs.getDouble("placa_zasadnicza"));
             }
+            endTime = System.currentTimeMillis();
+            logger.info("Second read execution time {} ms.", (endTime - startTime));
+
+            connection.rollback();
+
+        } catch (Exception e) {
+            logger.error("A generic exception occurred.", e);
+        } finally {
+            close(connection, stmt, rs);
         }
         return employeeList;
     }
 
-    // 2021-01-17 @TP
     public static double getEmployeeSalary_Statement(int employee) {
 
         double salary = -1;
@@ -257,39 +332,24 @@ public class Employee {
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
             String sql = "SELECT placa_zasadnicza FROM kadry.prowadzacy WHERE id_prowadzacego = " + employee;
-            stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.FETCH_FORWARD);
+            stmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             rs = stmt.executeQuery(sql);
 
             rs.beforeFirst();
             if (rs.next()) {
                 salary = rs.getDouble("placa_zasadnicza");
             } else {
-                System.err.println("Information SQL. No rows were fetched.");
+                logger.info("No rows were fetched.");
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (stmt != null && !stmt.isClosed()) {
-                    stmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, stmt, rs);
         }
         return salary;
     }
 
-    // 2021-01-17 @TP
     public static double getEmployeeSalary_PreparedStatement(int employee) {
 
         double salary = -1;
@@ -312,38 +372,22 @@ public class Employee {
             if (rs.next()) {
                 salary = rs.getDouble("placa_zasadnicza");
             } else {
-                System.err.println("Information SQL. No rows were fetched.");
+                logger.info("No rows were fetched.");
             }
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return salary;
     }
 
-    // 2021-01-16 @TP
     public static List<Employee> getEmployeesSalary_PreparedStatementResultSet(int employeeLowerBound, int employeeUpperBound) {
 
-        //double salary = -1;
         Connection connection = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        List<Employee> employeeList = new ArrayList<Employee>();
+        List<Employee> employeeList = new ArrayList<>();
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -351,8 +395,9 @@ public class Employee {
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
+            logger.info("Salaries of employees with ID between = {} and {}.", employeeLowerBound, employeeUpperBound);
             String sql = "SELECT id_prowadzacego, placa_zasadnicza FROM kadry.prowadzacy WHERE id_prowadzacego BETWEEN ? AND ?";
-            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.FETCH_REVERSE);
+            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             pstmt.clearParameters();
             pstmt.setInt(1, employeeLowerBound);
             pstmt.setInt(2, employeeUpperBound);
@@ -366,29 +411,14 @@ public class Employee {
                 employeeList.add(row);
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return employeeList;
     }
 
-    // 2021-01-16 @TP
     public static double changeEmployeeSalary_PreparedStatement(double salaryRise, int employee) {
 
         double changedSalary = -1;
@@ -409,40 +439,25 @@ public class Employee {
             pstmt.setDouble(1, salaryRise);
             pstmt.setInt(2, employee);
 
-            // Przeglądanie zmienionych wynagrodzeń
+            // Przeglądanie zmienionych wynagrodzeń.
             rs = pstmt.executeQuery();
             rs.beforeFirst();
             if (rs.next()) {
                 // Co oznacza wartość 6 w poniższej metodzie getDouble(6)?
                 changedSalary = rs.getDouble(6);
-                System.out.println("Information. Updated salary = " + changedSalary);
+                logger.info("Updated salary = {}.", changedSalary);
             } else {
-                System.err.println("Information. No records were updated.");
+                logger.info("No rows were updated.");
             }
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & pstmt & connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return changedSalary;
     }
 
-    // 2021-01-16 @TP
     public static double changeEmployeeSalary_PreparedStatementResultSet(double salaryRise, int employee) {
 
         double salary;
@@ -458,7 +473,7 @@ public class Employee {
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
             String sql = "SELECT id_prowadzacego, placa_zasadnicza FROM kadry.prowadzacy WHERE id_prowadzacego = ?";
-            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.FETCH_FORWARD);
+            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             pstmt.clearParameters();
             pstmt.setInt(1, employee);
 
@@ -466,37 +481,22 @@ public class Employee {
             rs.beforeFirst();
             while (rs.next()) {
                 salary = rs.getDouble("placa_zasadnicza");
-                System.out.println("Information. Current salary = " + salary);
+                logger.info("Current salary = {}.", salary);
                 changedSalary = (1 + salaryRise) * salary;
                 rs.updateDouble("placa_zasadnicza", changedSalary);
                 rs.updateRow();
-                System.out.println("Information. Updated salary = " + changedSalary);
+                logger.info("Updated salary = {}.", changedSalary);
             }
-            // rs.moveToInsertRow();
+            // @TODO rs.moveToInsertRow();
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return changedSalary;
     }
 
-    // 2021-01-16 @TP
     public static double addEmployeePayment_PreparedStatementResultSet(double salary, int month, int year, String category, int employee) {
 
         Connection connection = null;
@@ -510,7 +510,7 @@ public class Employee {
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
             String sql = "SELECT * FROM kadry.wyplaty WHERE id_prowadzacego = ? AND rok = ? AND miesiac = ? AND kategoria_wyplaty = ?";
-            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.FETCH_FORWARD);
+            pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
             pstmt.clearParameters();
             pstmt.setInt(1, employee);
             pstmt.setInt(2, year);
@@ -520,46 +520,30 @@ public class Employee {
             rs = pstmt.executeQuery();
             rs.beforeFirst();
             if (!rs.next()) {
-                rs.moveToInsertRow();
+                rs.moveToInsertRow(); // Ustawienie na pozycji w zbiorze danych pozwalającej dodać rekord.
                 rs.updateInt("id_prowadzacego", employee);
                 rs.updateInt("rok", year);
                 rs.updateInt("miesiac", month);
                 rs.updateString("kategoria_wyplaty", category);
                 rs.updateDate("data_wyplaty", new java.sql.Date(System.currentTimeMillis()));
                 rs.updateDouble("kwota", salary);
-                rs.insertRow();
-                // Dodanie rekordu do DB?
+                rs.insertRow(); // Dodanie rekordu do bazy danych.
             }
-
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                    // Dodanie rekordu do DB?                    
-                }
-            } catch (Exception e) {
-                System.out.println("Error. Closing rs & stmt & connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return salary;
     }
 
-    // 2021-01-16 @TP @TODO
-    // Aktualizacja wynagrodzenia pracowników, którzy zarabiają nie więcej niż wartość parametru salaryBound
+    // @TODO Zmieniono 2022-11-16
+    // Aktualizacja wynagrodzenia pracowników, którzy zarabiają nie więcej niż wartość parametru salaryBound.
     public static int changeEmployeeSalary_PreparedStatementViaExecuteUpdate(double salaryRise, int salaryBound) {
 
         int rowsUpdatedCount = -1;
         Connection connection = null;
+        PreparedStatement pstmt = null;
 
         try {
             Class.forName(JDBC_DRIVER);
@@ -567,7 +551,6 @@ public class Employee {
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
-            PreparedStatement pstmt;
             String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE placa_zasadnicza <= ?";
 
             pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -575,124 +558,88 @@ public class Employee {
             pstmt.setDouble(1, salaryRise);
             pstmt.setInt(2, salaryBound);
 
-            try {
-                // W niniejszej metodzie wykonywane jest executeUpdate(). Jaka metoda była wykorzystwana wcześniej?
-                rowsUpdatedCount = pstmt.executeUpdate();
-                if (rowsUpdatedCount > 0) {
-                    System.out.println("Information. Updated salary for " + rowsUpdatedCount + " employees.");
-                } else {
-                    System.err.println("Information. No records were updated.");
-                }
-            } catch (Exception e) {
-                System.err.println("Error. Update failed. Exception: " + e);
-            } finally {
-                try {
-                    pstmt.close();
-                } catch (Exception e) {
-                    System.err.println("Error. Closing rs & pstmt. Exception: " + e);
-                }
+            // W poniższej linii wykonywana jest metoda executeUpdate(). Jaka metoda była wykorzystywana wcześniej? Czym się różnią obie metody?
+            rowsUpdatedCount = pstmt.executeUpdate();
+            if (rowsUpdatedCount > 0) {
+                logger.info("Salary updated for {} employees.", rowsUpdatedCount);
+            } else {
+                logger.info("No employees salaries were updated.");
             }
 
         } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
+            logger.error("SQL exception occurred due to failed update.", e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.err.println("Error. Closing connection failed. Exception: " + e);
-            }
+            close(connection, pstmt, null);
         }
         return rowsUpdatedCount;
     }
 
-    // 2021-01-17 @TP
     public static double changeSalary_RollbackError(double salaryRise, int employee) {
 
         double updatedSalary = -1;
         Connection connection = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
         try {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
-            PreparedStatement pstmt;
-            ResultSet rs = null;
             String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING *";
 
-            System.out.println("Autocommit mode is set to " + connection.getAutoCommit());
+            logger.info("Autocommit mode is set to {}.", connection.getAutoCommit());
 
             pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             pstmt.clearParameters();
             pstmt.setDouble(1, salaryRise);
             pstmt.setInt(2, employee);
 
-            try {
-                rs = pstmt.executeQuery();
-                rs.beforeFirst();
-                if (rs.next()) {
-                    // Co oznacza wartość 6 w poniższej metodzie getDouble(6)?
-                    updatedSalary = rs.getDouble(6);
-                    if (updatedSalary > 10000) {
-                        System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit.");
-                        connection.rollback(); // @TP Notice: Rollback cannot be executed in Autocommit = TRUE mode.
-                        updatedSalary = -1;
-                    } else {
-                        System.out.println("Information. Updated salary = " + updatedSalary);
-                    }
+            rs = pstmt.executeQuery();
+            rs.beforeFirst();
+            if (rs.next()) {
+                // Co oznacza wartość 6 w poniższej metodzie getDouble(6)?
+                updatedSalary = rs.getDouble(6);
+                if (updatedSalary > 10000) {
+                    logger.info("Constraint violation. Updated salary = {} is greater than upper limit.", updatedSalary);
+                    connection.rollback(); // Wycofanie wprowadzonych zmian nie może być wykonywane w trybie automatycznego zatwierdzania transakcji.
+                    updatedSalary = -1;
                 } else {
-                    System.err.println("Information. No records were updated.");
+                    logger.info("Updated salary = {}.", updatedSalary);
                 }
-            } catch (Exception e) {
-                System.err.println("Error. Update failed. Exception: " + e);
-            } finally {
-                try {
-                    if (rs != null) {
-                        rs.close();
-                    }
-                    pstmt.close();
-                } catch (Exception e) {
-                    System.err.println("Error. Closing rs & pstmt. Exception: " + e);
-                }
+            } else {
+                logger.info("No employees salaries were updated.");
             }
-
         } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
+            logger.error("SQL exception occurred due to failed update.", e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.err.println("Error. Closing connection. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return updatedSalary;
     }
 
-    // 2021-01-17 @TP
     public static double changeSalary_ExecuteQueryRollback(double salaryRise, int employee) {
 
         double updatedSalary = -1;
         Connection connection = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Integer sleep = 15; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
 
         try {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            // Ustawienie trybu AUTOCOMMIT na tryb pełnej kontroli zatwiedzania oraz wycofywania transakcji.
-            connection.setAutoCommit(false);
 
-            PreparedStatement pstmt;
-            ResultSet rs = null;
+            // Ustawienie połączenia w tryb nieautomatycznego zatwierdzania/wycofywania transakcji tj. AutoCommit = false.
+            connection.setAutoCommit(false);
+            logger.info("AutoCommit mode is set to {}.", connection.getAutoCommit());
+
             String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING *";
 
             pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -703,80 +650,59 @@ public class Employee {
             try {
                 rs = pstmt.executeQuery();
                 rs.beforeFirst();
-                // W celu obserwcji z użyciem PgAdmina (Narzędzia - Status serwera) nałożonych w bazie danych blokad, można po uruchomieniu transakcji wstrzymać jej zakończenie poniższym poleceniem.
-                // Poniższe uśpienie konieczne jest także dla sprawdzenia działania przykładu nr 20
                 if (rs.next()) {
                     updatedSalary = rs.getDouble(6);
                     if (updatedSalary > 10000) {
-                        System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit.");
-                        TimeUnit.SECONDS.sleep(15);
-                        connection.rollback(); // @TP Notice: Rollback can be executed in Autocommit = FALSE mode.
+                        logger.info("Constraint violation. Updated salary = {} is greater than upper limit.", updatedSalary);
+                        TimeUnit.SECONDS.sleep(sleep);
+                        connection.rollback();  // Wycofanie wprowadzonych zmian może być wykonywane w trybie nieautomatycznego zatwierdzania transakcji.
                         updatedSalary = -1;
                     } else {
-                        TimeUnit.SECONDS.sleep(15);
+                        TimeUnit.SECONDS.sleep(sleep);
                         connection.commit();
-                        System.out.println("Information. Updated salary = " + updatedSalary);
+                        logger.info("Updated salary = {}.", updatedSalary);
                     }
                 } else {
-                    System.err.println("Information. No records were updated.");
-                    // Czy jest sens wykonywać COMMIT albo ROLLBACK gdy żaden rekord nie został zmieniony?
-                    // connection.commit(); // connection.rollback();
+                    logger.info("No employees salaries were updated.");
+                    // Czy ma sens wykonanie zatwierdzenia transakcji, gdy żaden rekord nie został zmieniony?
+                    connection.commit();
                 }
             } catch (Exception e) {
-                // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE 
-                // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
-                TimeUnit.SECONDS.sleep(15);
+                // W przypadku działania w trybie nieautomatycznego zatwierdzania/wycofywania transakcji tj. AutoCommit = false należy w przypadku wystąpienia wyjątków samodzielnie obsługiwać wycofywanie ewentualnych zmian wprowadzonych w ramach transakcji.
+                TimeUnit.SECONDS.sleep(sleep);
                 connection.rollback();
-                System.err.println("Error. Update failed. Exception: " + e);
-            } finally {
-                try {
-                    if (rs != null) {
-                        rs.close();
-                    }
-                    pstmt.close();
-                } catch (Exception e) {
-                    System.err.println("Error. Closing rs & pstmt. Exception: " + e);
-                }
+                logger.error("Exception occurred therefore update was rollbacked.", e);
             }
-
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (connection != null) {
-                    // Bardzo ważne jest, aby po zakończeniu transakcji ustawić z powrotem tryb AUTOCOMMIT = FALSE;.
-                    connection.setAutoCommit(true);
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.err.println("Error. Setting AutoCommit failed. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return updatedSalary;
     }
 
-    // 2021-11-24 @TP
     // Algorytm przyznania podwyżki:
-    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce przekracza 10000 PLN to zostanie ona cofnięta (pracownik nie otrzyma pierwszej podwyżki).
-    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (5000, 10000] PLN to pracownik otrzyma tylko pierwszą podwyżkę.
-    // - Jeżeli wynagrodzenie pracownika po 1-szej podwyżce zawiera się w przedziale (0, 5000] PLN to pracownik otrzyma pierwszą oraz drugą podwyżkę.
-    // Ile będzie wynosić kwota podwyżki dla pracownika, który zarabia 3000 zł zakładając, że każda podwyżka ma ten sam wzrost 10%?
+    // - Jeżeli po pierwszej podwyżce wynagrodzenie pracownika wynosi ponad 10000 PLN to podwyżka zostanie cofnięta (pracownik nie otrzyma pierwszej podwyżki).
+    // - Jeżeli po pierwszej podwyżce wynagrodzenie pracownika zawiera się w przedziale (5000, 10000] PLN to pracownik otrzyma tylko pierwszą podwyżkę.
+    // - Jeżeli po pierwszej podwyżce wynagrodzenie pracownika zawiera się w przedziale (0, 5000] PLN to pracownik otrzyma pierwszą oraz drugą podwyżkę.
+    // Ile będzie wynosić kwota podwyżki dla pracownika, który zarabia 3000 PLN zakładając, że każda podwyżka ma ten sam wzrost 10%?
     public static double changeSalaryTwice_ExecuteQuerySavepoint(double salaryRise, int employee) {
 
         double updatedSalary = -1;
         Connection connection = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Integer sleep = 15; // Czas uśpienia pozwalający na obserwację nałożonych w bazie danych blokad (PgAdmin - Narzędzia - Status serwera).
 
         try {
             Class.forName(JDBC_DRIVER);
 
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            // Ustawienie trybu AUTOCOMMIT na tryb pełnej kontroli zatwiedzania oraz wycofywania transakcji.
+
+            // Ustawienie połączenia w tryb nieautomatycznego zatwierdzania/wycofywania transakcji tj. AutoCommit = false.
             connection.setAutoCommit(false);
-            PreparedStatement pstmt;
-            ResultSet rs = null;
+            logger.info("AutoCommit mode is set to {}.", connection.getAutoCommit());
 
             // Start operacji U1
             String sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING *";
@@ -789,90 +715,69 @@ public class Employee {
             try {
                 rs = pstmt.executeQuery();
                 rs.beforeFirst();
-                // W celu obserwcji z użyciem PgAdmina (Narzędzia - Status serwera) nałożonych w bazie danych blokad, można po uruchomieniu transakcji wstrzymać jej zakończenie poniższym poleceniem.
-                // TimeUnit.SECONDS.sleep(15);
                 if (rs.next()) {
                     updatedSalary = rs.getDouble(6);
 
                     // Punkt zachowania
                     Savepoint sp = connection.setSavepoint("S1");
                     if (updatedSalary > 10000) {
-                        System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than upper limit. Change not saved.");
-                        // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
-                        // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
-                        connection.rollback();
+                        logger.info("Constraint violation. Updated salary = {} is greater than or equal to upper limit (10000 PLN). Modification not saved.", updatedSalary);
+                        TimeUnit.SECONDS.sleep(sleep);
+                        connection.rollback();  // Wycofanie wprowadzonych zmian może być wykonywane w trybie nieautomatycznego zatwierdzania transakcji.
                         updatedSalary = -1;
                     } else {
 
+                        logger.info("Salary after first rise = {}.", updatedSalary);
                         // Start operacji U2
                         sql = "UPDATE kadry.prowadzacy SET placa_zasadnicza = (1 + ?) * placa_zasadnicza WHERE id_prowadzacego = ? RETURNING placa_zasadnicza";
 
-                        pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                        //pstmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                         pstmt.clearParameters();
                         pstmt.setDouble(1, salaryRise);
                         pstmt.setInt(2, employee);
 
                         try {
                             rs = pstmt.executeQuery();
+                            rs.beforeFirst();
                             if (rs.next()) {
                                 // Poniższy zapis odwołuje się jawnie, poprzez nazwę do zwracanej poprzez UPDATE wartości.
                                 updatedSalary = rs.getDouble("placa_zasadnicza");
                             }
                         } catch (Exception e) {
-                            // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
-                            // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
+                            // W przypadku działania w trybie nieautomatycznego zatwierdzania/wycofywania transakcji tj. AutoCommit = false należy w przypadku wystąpienia wyjątków samodzielnie obsługiwać wycofywanie ewentualnych zmian wprowadzonych w ramach transakcji.
+                            TimeUnit.SECONDS.sleep(sleep);
                             connection.rollback();
-                            System.err.println("Error. Update failed. Exception: " + e);
+                            logger.error("Exception occurred therefore update was rollbacked.", e);
                         }
                         // Koniec operacji U2
 
                         if (updatedSalary > 5000) {
-                            System.out.println("Constraint violation. Updated salary = " + updatedSalary + " is greater than middle limit. Change not saved.");
-                            connection.rollback(sp); // @TP Notice: Rollback can be executed in Autocommit = FALSE mode.
+                            logger.info("Constraint violation. Updated salary = {} is greater than or equal to middle limit (5000 PLN). Modification not saved.", updatedSalary);
+                            TimeUnit.SECONDS.sleep(sleep);
+                            connection.rollback(sp); // Wycofanie transakcji do punktu zachowania może być wykonane tylko w trybie nieautomatycznego zatwierdzania transakcji.
                             connection.commit();
                             updatedSalary = -1;
                         } else {
+                            TimeUnit.SECONDS.sleep(sleep);
                             connection.commit();
-                            System.out.println("Information. Updated salary = " + updatedSalary);
+                            logger.info("Updated salary = {}.", updatedSalary);
                         }
                     }
                 } else {
-                    System.err.println("Information. No records were updated.");
-                    // Czy jest sens wykonywać COMMIT albo ROLLBACK gdy żaden rekord nie został zmieniony?
-                    // connection.commit(); / connection.rollback();
+                    logger.info("No employees salaries were updated.");
+                    // Czy ma sens wykonanie zatwierdzenia transakcji, gdy żaden rekord nie został zmieniony?
+                    connection.commit();
                 }
             } catch (Exception e) {
-                // W przypadku działania w trybie pełnej kontroli nad transakcjami tj. AUTOCOMMIT = FALSE
-                // należy samodzielnie obsługiwać wycofywanie działania transakcji w przypadku wystąpienia wyjątków.
+                // W przypadku działania w trybie nieautomatycznego zatwierdzania/wycofywania transakcji tj. AutoCommit = false należy w przypadku wystąpienia wyjątków samodzielnie obsługiwać wycofywanie ewentualnych zmian wprowadzonych w ramach transakcji.
+                TimeUnit.SECONDS.sleep(sleep);
                 connection.rollback();
-                System.err.println("Error. Update failed. Exception: " + e);
-                // Koniec operacji U1
-
-            } finally {
-                try {
-                    if (rs != null) {
-                        rs.close();
-                    }
-                    pstmt.close();
-                } catch (Exception e) {
-                    System.err.println("Error. Closing rs & pstmt. Exception: " + e);
-                }
+                logger.error("Exception occurred therefore update was rollbacked.", e);
             }
-
-        } catch (SQLException e) {
-            System.err.println("Error SQL. Exception: " + e);
         } catch (Exception e) {
-            System.err.println("Error. Exception: " + e);
+            logger.error("A generic exception occurred.", e);
         } finally {
-            try {
-                if (connection != null) {
-                    // Bardzo ważne jest, aby po zakończeniu transakcji ustawić z powrotem tryb AUTOCOMMIT = FALSE;.
-                    connection.setAutoCommit(true);
-                    connection.close();
-                }
-            } catch (Exception e) {
-                System.err.println("Error. Setting AutoCommit failed. Exception: " + e);
-            }
+            close(connection, pstmt, rs);
         }
         return updatedSalary;
     }

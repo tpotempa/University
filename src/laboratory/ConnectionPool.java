@@ -6,12 +6,12 @@ import static laboratory.DatabaseInformation.*;
 
 public class ConnectionPool {
 
-    private String driver = null;
-    private String url = null;
+    private String driver;
+    private String url;
     private int size = 0;
-    private String username = new String();
-    private String password = new String();
-    private ArrayList pool = null;
+    private String username;
+    private String password;
+    private ArrayList<PooledConnection> pool;
 
     public ConnectionPool() {
     }
@@ -66,13 +66,12 @@ public class ConnectionPool {
         return password;
     }
 
-    // 2020-01-17 @TP Creating and returning a connection
+    // Create and return a connection.
     private Connection createConnection() throws Exception {
-        Connection con = DriverManager.getConnection(url, username, password);
-        return con;
+        return DriverManager.getConnection(url, username, password);
     }
 
-    // 2020-01-17 @TP Initialization of the pool
+    // Initialize the pool
     public synchronized void initializePool() throws Exception {
         if (driver == null || url == null || size < 1) {
             throw new Exception("No parameters specified.");
@@ -93,40 +92,40 @@ public class ConnectionPool {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error. Initilization of the pool. " + e.getMessage());
+            System.err.println("Error. Initialization of the pool. " + e.getMessage());
             throw new Exception(e.getMessage());
         }
     }
 
-    // 2020-01-17 @TP Adding the PooledConnection to the pool
+    // Add the PooledConnection to the pool.
     private void addConnection(PooledConnection value) {
         if (pool == null) {
-            pool = new ArrayList(size);
+            pool = new ArrayList<>(size);
         }
         pool.add(value);
     }
 
-    // 2020-01-16 @TP
+    // Release a connection.
     public synchronized void releaseConnection(Connection con) {
         for (int x = 0; x < pool.size(); x++) {
-            PooledConnection pcon = (PooledConnection) pool.get(x);
+            PooledConnection pcon = pool.get(x);
             if (pcon.getConnection() == con) {
                 boolean autocommit = false;
                 int transactionIsolationLevel = Connection.TRANSACTION_READ_COMMITTED;
 
                 try {
                     autocommit = con.getAutoCommit();
-                } catch (SQLException sqle) {
-                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + sqle.getMessage());                    
+                } catch (SQLException e) {
+                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + e.getMessage());
                 }
-                if (autocommit == false) {
-                    System.err.println("Warning SQL. Pool contains connection No " + x + " [" + con + "] with AUTOCOMMIT " + autocommit);
+                if (!autocommit) {
+                    System.err.println("Warning SQL. Pool contains connection No " + x + " [" + con + "] with AUTOCOMMIT = false");
                 }
 
                 try {
                     transactionIsolationLevel = con.getTransactionIsolation();
-                } catch (SQLException sqle) {
-                    System.err.println("Error SQL. TRANSACTION ISOLATION LEVEL property of the connection cannot be determined. " + sqle.getMessage());
+                } catch (SQLException e) {
+                    System.err.println("Error SQL. TRANSACTION ISOLATION LEVEL property of the connection cannot be determined. " + e.getMessage());
                 }
                 if (transactionIsolationLevel != Connection.TRANSACTION_READ_COMMITTED) {
                     String isolationLevel = getTransactionIsolationLevel(transactionIsolationLevel);                    
@@ -140,28 +139,28 @@ public class ConnectionPool {
         }
     }
 
-    // 2020-01-17 @TP Finding an available connection
+    // Find an available connection.
     public synchronized Connection getConnection()
             throws Exception {
-        PooledConnection pcon = null;
+        PooledConnection pcon;
         for (int x = 0; x < pool.size(); x++) {
-            pcon = (PooledConnection) pool.get(x);
-            if (pcon.inUse() == false) {
+            pcon = pool.get(x);
+            if (!pcon.inUse()) {
                 pcon.setInUse(true);
                 Connection con = pcon.getConnection();
 
                 boolean autocommit = false;
                 try {
                     autocommit = con.getAutoCommit();
-                } catch (SQLException sqle) {
-                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + sqle.getMessage());
+                } catch (SQLException e) {
+                    System.err.println("Error SQL. AUTOCOMMIT property of the connection cannot be determined. " + e.getMessage());
                 }
                 System.out.println("Information. Getting connection No " + x + " [" + con + "] with [AUTOCOMMIT=" + autocommit + "]");
                 return con;
             }
         }
 
-        // 2020-01-17 @TP When there is no free connection, create and add a new one
+        // If there is no available connection, create and add a new one to the pool.
         try {
             Connection con = createConnection();
             pcon = new PooledConnection(con);
@@ -175,22 +174,19 @@ public class ConnectionPool {
         return pcon.getConnection();
     }
 
-    // 2020-01-17 @TP
     public synchronized void emptyPool() {
         for (int x = 0; x < pool.size(); x++) {
             System.out.println("Closing JDBC Connection " + x);
-            PooledConnection pcon = (PooledConnection) pool.get(x);
-                    
-            if (pcon.inUse() == false) {
+            PooledConnection pcon = pool.get(x);
+
+            // If connection is still in use, sleep for 10 seconds and force close.
+            if (!pcon.inUse()) {
                 pcon.close();
-            } else {
-                // If connection is still in use, sleep for 30 seconds and force close.
-                try {
-                    java.lang.Thread.sleep(30000);
-                    pcon.close();
-                } catch (InterruptedException ie) {
-                    System.err.println(ie.getMessage());
-                }
+            } else try {
+                Thread.sleep(10000);
+                pcon.close();
+            } catch (InterruptedException ie) {
+                System.err.println(ie.getMessage());
             }
         }
     }

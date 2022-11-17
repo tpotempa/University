@@ -2,8 +2,9 @@ package laboratory;
 
 import static laboratory.Employee.*;
 import static laboratory.DatabaseInformation.*;
-import laboratory.ConnectionPool.*;
+//import laboratory.ConnectionPool.*;
 
+import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -20,9 +21,9 @@ import java.sql.DriverManager;
 public class Laboratory extends JFrame {
 
     static final String JDBC_DRIVER = "org.postgresql.Driver";
-    static final String DB_URL = "jdbc:postgresql://195.150.230.208:5432/2022_nazwisko_imie";
-    static final String USER = "2022_nazwisko_imie";
-    static final String PASS = "";
+    static final String DB_URL = "jdbc:postgresql://195.150.230.210:5434/2021_potempa_tomasz";
+    static final String USER = "2021_potempa_tomasz";
+    static final String PASS = "12345";
     static final int POOL_SIZE = 5;
 
     public Laboratory(String description, Component relativePosition, List<Employee> employeeList) {
@@ -44,7 +45,7 @@ public class Laboratory extends JFrame {
     public static void main(String[] args) {
 
         // Numer przykładu
-        int example = 50;
+        int example = 11;
 
         switch (example) {
             case 1: {
@@ -54,34 +55,27 @@ public class Laboratory extends JFrame {
                 break;
             }
             case 10: {
-                // Przykład #10
-                // Odczyt danych z tabeli z użyciem Statement
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        // @TP Laboratory(description, windowRelativePosition)
-                        List<Employee> employeeList = getEmployees_Statement();
-                        
-                        Laboratory tableT1 = new Laboratory("Transaction T1", null, employeeList);
-                    }
+                // Przykład #10 :: Odczyt danych z tabeli z użyciem Statement
+                SwingUtilities.invokeLater(() -> {
+                    // @TP Laboratory(description, windowRelativePosition)
+                    List<Employee> employeeList = getEmployees_Statement();
+
+                    new Laboratory("Transaction T1", null, employeeList);
                 });
                 break;
             }
             case 11: {
                 // Przykład #11
-                // Odczyt danych z tabeli z użyciem Statement (SENSITIVE)
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        // @TP Laboratory(description, windowRelativePosition)
-                        List<Employee> employeeList = getEmployees_StatementSensitive();                        
-                        Laboratory tableT1 = new Laboratory("Transaction T1", null, employeeList);
-                    }
+                // Odczyt danych z tabeli z użyciem Statement (INSENSITIVE)
+                SwingUtilities.invokeLater(() -> {
+                    // Laboratory(description, windowRelativePosition)
+                    List<Employee> employeeList = getEmployees_StatementUpdateVisibility();
+                    new Laboratory("Transaction T1", null, employeeList);
                 });
                 break;
             }
             case 12: {
-                // Przykład #12 :: Generyczny dostęp do danych, be znajomości strktury tabeli.
+                // Przykład #12 :: Generyczny dostęp do danych, be znajomości struktury tabeli.
                 try {
                     System.out.println(getEmployees().displayHTML("University employees"));
                 } catch (Exception e) {
@@ -104,8 +98,8 @@ public class Laboratory extends JFrame {
                 // Przykład #21 :: Dostęp do danych z pełną kontrolą via PreparedStatement. Rezultat jest kolekcją, w tym przypadku zbiorem wartości.
                 System.out.println("Salary for employees with ID between LOWER_BOUND and UPER_BOUND.");
                 List<Employee> employeeList = getEmployeesSalary_PreparedStatementResultSet(4, 7);
-                for (int row = 0; row < employeeList.size(); row++) {
-                    System.out.println("Salary for an employee ID = " + employeeList.get(row).getId() + " is " + employeeList.get(row).getSalary());
+                for (Employee employee : employeeList) {
+                    System.out.println("Salary for an employee ID = " + employee.getId() + " is " + employee.getSalary());
                 }
                 break;
             }
@@ -147,9 +141,9 @@ public class Laboratory extends JFrame {
                 break;
             }
             case 27: {
-                // Przykład #27 :: Kontrola nad zagnieżdżonymi transakcjami
+                // Przykład #27 :: Kontrola nad operacjami z użyciem punktu zachowania
                 long startTime = System.currentTimeMillis();
-                changeSalaryTwice_ExecuteQueryRollback(0.1, 1);
+                changeSalaryTwice_ExecuteQuerySavepoint(0.1, 19);
                 long endTime = System.currentTimeMillis();
                 System.out.println("Execution time: " + (endTime - startTime) + " ms");
                 break;
@@ -167,29 +161,26 @@ public class Laboratory extends JFrame {
             case 40: {
                 // Przykład #40
                 // Obserwacja widoczności zmiany wprowadzanych przez metodę changeSalary_ExecuteQueryRollback()
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        // @TP Laboratory(description, windowRelativePosition)
-                        List<Employee> employeeList1 = getEmployees_Statement();
-                        Laboratory tableT1 = new Laboratory("Transaction T1", null, employeeList1);
-                        changeSalary_ExecuteQueryRollback(0.25, 20);                        
-                        List<Employee> employeeList2 = getEmployees_Statement();
-                        Laboratory tableT2 = new Laboratory("Transaction T2", tableT1, employeeList2);
-                        changeSalary_ExecuteQueryRollback(0.25, 20);                        
-                        List<Employee> employeeList3 = getEmployees_Statement();
-                        Laboratory tableT3 = new Laboratory("Transaction T3", tableT2, employeeList3);
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    // @TP Laboratory(description, windowRelativePosition)
+                    List<Employee> employeeList1 = getEmployees_Statement();
+                    Laboratory tableT1 = new Laboratory("Transaction T1", null, employeeList1);
+                    changeSalary_ExecuteQueryRollback(0.25, 20);
+                    List<Employee> employeeList2 = getEmployees_Statement();
+                    Laboratory tableT2 = new Laboratory("Transaction T2", tableT1, employeeList2);
+                    changeSalary_ExecuteQueryRollback(0.25, 20);
+                    List<Employee> employeeList3 = getEmployees_Statement();
+                    new Laboratory("Transaction T3", tableT2, employeeList3);
                 });
                 break;
             }
                 
             case 50: {
                 // Przykład #50 :: Używanie puli połączeń
-                // Inicjalizacja puli.                
+                // Inicjalizacja puli.
                 ConnectionPool cp = new ConnectionPool();
                 try {
-                    Class jdbc = Class.forName(JDBC_DRIVER);
+                    Class<?> jdbc = Class.forName(JDBC_DRIVER);
                     Driver driver = DriverManager.getDriver(DB_URL);
                     System.out.println("Information. JDBC driver loaded " + jdbc.getCanonicalName() + " / JDBC version: " + driver.getMajorVersion() + "." + driver.getMinorVersion());
                     try {
@@ -203,7 +194,7 @@ public class Laboratory extends JFrame {
                     } catch (Exception e) {
                         System.err.println("Error. Pool initialization error. " + e);
                     }
-                } catch (Exception e) {
+                } catch (ClassNotFoundException | SQLException e) {
                     System.err.println("Error. JDBC loading error. " + e);
                 }
 

@@ -8,13 +8,12 @@ import static laboratory.Laboratory.PASS;
 
 public class DatabaseInformation {
 
-    // 2021-01-15 @TP
     public static String getDriverVersion() {
 
         String information = "No information.";
 
         try {
-            Class jdbc = Class.forName(JDBC_DRIVER);
+            Class<?> jdbc = Class.forName(JDBC_DRIVER);
             Driver driver = DriverManager.getDriver(DB_URL);
             information = "Class: " + jdbc.getCanonicalName() + " / JDBC version: " + driver.getMajorVersion() + "." + driver.getMinorVersion() + " / Database: " + DB_URL;
         } catch (Exception e) {
@@ -23,10 +22,9 @@ public class DatabaseInformation {
         return information;
     }
 
-    // 2021-01-15 @TP
     public static String getTransactionIsolationLevels() {
 
-        Connection connection = null;
+        Connection connection;
         String information;
         String isolationLevel = "No information.";
         String defaultIsolationLevel = "No information.";
@@ -86,12 +84,11 @@ public class DatabaseInformation {
             System.err.println("Error. Exception: " + e);
         }
 
-        information = "Current connection isolation level = " + isolationLevel + ". Default isolation level = " + defaultIsolationLevel + ".";
+        information = "For current connection transaction isolation level = " + isolationLevel + ". Default isolation level = " + defaultIsolationLevel + ".";
         return information;
     }
     
-    // 2020-01-16 @TP
-    public static String getTransactionIsolationLevel(int transactionIsolationLevel) {    
+    public static String getTransactionIsolationLevel(int transactionIsolationLevel) {
             String isolationLevel;
             switch (transactionIsolationLevel) {
                 case Connection.TRANSACTION_NONE:
